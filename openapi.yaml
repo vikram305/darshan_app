@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Darshan Video Backend API
+  description: API Documentation for Darshan Video Calling application. Defines REST endpoints and underlying models for WebRTC/Socket.io signaling events. 
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /call/room:
+    post:
+      summary: Create a new room
+      description: Generates a new 6-character room code without requiring an input payload.
+      tags:
+        - Room Management
+      responses:
+        '201':
+          description: Room successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_Room'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Standard API Response Models
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        message:
+          type: string
+          description: A descriptive message about the result
+      required:
+        - success
+        - message
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: "null"
+          required:
+            - data
+
+    SuccessResponse_Room:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                room:
+                  $ref: '#/components/schemas/RoomModel'
+              required:
+                - room
+          required:
+            - data
+
+    # Domain Models
+    RoomModel:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The 6-character unique room code
+          example: "123456"
+      required:
+        - code
+
+    # Signaling Request Models (Socket.IO mapping)
+    JoinRoomEventPayload:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: "123456"
+        peerName:
+          type: string
+          minLength: 1
+          example: "Vikram"
+      required:
+        - code
+        - peerName
+
+    CreateTransportEventPayload:
+      type: object
+      properties:
+        roomId:
+          type: string
+          minLength: 6
+          maxLength: 6
+        peerId:
+          type: string
+        direction:
+          type: string
+          enum: [ "send", "recv" ]
+      required:
+        - roomId
+        - peerId
+        - direction
+
+    ConnectTransportEventPayload:
+      type: object
+      properties:
+        roomId:
+          type: string
+        peerId:
+          type: string
+        transportId:
+          type: string
+        dtlsParameters:
+          $ref: '#/components/schemas/DtlsParameters'
+      required:
+        - roomId
+        - peerId
+        - transportId
+        - dtlsParameters
+
+    DtlsParameters:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [auto, client, server]
+        fingerprints:
+          type: array
+          items:
+            type: object
+            properties:
+              algorithm:
+                type: string
+              value:
+                type: string
+      required:
+        - fingerprints
