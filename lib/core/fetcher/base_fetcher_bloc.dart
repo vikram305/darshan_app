@@ -7,7 +7,8 @@ import 'fetcher_event.dart';
 import 'fetcher_state.dart';
 
 abstract class BaseFetcherBloc<T> extends Bloc<FetcherEvent, FetcherState<T>> {
-  BaseFetcherBloc() : super(const FetcherInitial<T>()) {
+  BaseFetcherBloc() : super(FetcherInitial<T>()) {
+
     on<FetchData>(
       (event, emit) async {
         emit(FetcherLoading<T>());

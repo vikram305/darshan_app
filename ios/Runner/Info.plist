@@ -45,5 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Darshan requires camera access for video calls.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Darshan requires microphone access for audio calls.</string>
 </dict>
+
 </plist>

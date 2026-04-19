@@ -5,24 +5,26 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
-import 'package:darshan_app/core/error/failure.dart' as _i5;
-import 'package:darshan_app/core/usecase/success.dart' as _i6;
+import 'package:darshan_app/core/error/failure.dart' as _i6;
+import 'package:darshan_app/core/usecase/success.dart' as _i7;
+import 'package:darshan_app/features/call/domain/entities/call_event.dart'
+    as _i4;
 import 'package:darshan_app/features/call/domain/entities/consumer_entity.dart'
-    as _i12;
-import 'package:darshan_app/features/call/domain/entities/local_media_entity.dart'
     as _i13;
+import 'package:darshan_app/features/call/domain/entities/local_media_entity.dart'
+    as _i14;
 import 'package:darshan_app/features/call/domain/entities/media_kind.dart'
-    as _i10;
+    as _i11;
 import 'package:darshan_app/features/call/domain/entities/producer_entity.dart'
-    as _i9;
+    as _i10;
 import 'package:darshan_app/features/call/domain/entities/room_entity.dart'
-    as _i7;
+    as _i8;
 import 'package:darshan_app/features/call/domain/repositories/call_repository.dart'
     as _i2;
-import 'package:flutter_webrtc/flutter_webrtc.dart' as _i11;
-import 'package:fpdart/fpdart.dart' as _i4;
+import 'package:flutter_webrtc/flutter_webrtc.dart' as _i12;
+import 'package:fpdart/fpdart.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:mockito/src/dummies.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -48,17 +50,25 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
   }
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>> createRoom({
+  _i3.Stream<_i4.CallEvent> get onCallEvent =>
+      (super.noSuchMethod(
+            Invocation.getter(#onCallEvent),
+            returnValue: _i3.Stream<_i4.CallEvent>.empty(),
+          )
+          as _i3.Stream<_i4.CallEvent>);
+
+  @override
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>> createRoom({
     required String? displayName,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createRoom, [], {#displayName: displayName}),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>
                   >(
                     this,
                     Invocation.method(#createRoom, [], {
@@ -67,10 +77,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>>);
+          as _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>>);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>> joinRoom({
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>> joinRoom({
     required String? roomId,
     required String? displayName,
   }) =>
@@ -81,10 +91,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
             }),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>
                   >(
                     this,
                     Invocation.method(#joinRoom, [], {
@@ -94,10 +104,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i7.RoomEntity>>>);
+          as _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i8.RoomEntity>>>);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>> leaveRoom({
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>> leaveRoom({
     required String? roomId,
     required String? peerId,
   }) =>
@@ -107,8 +117,8 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
               #peerId: peerId,
             }),
             returnValue:
-                _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>.value(
-                  _i8.dummyValue<_i4.Either<_i5.Failure, _i6.Success<void>>>(
+                _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>.value(
+                  _i9.dummyValue<_i5.Either<_i6.Failure, _i7.Success<void>>>(
                     this,
                     Invocation.method(#leaveRoom, [], {
                       #roomId: roomId,
@@ -117,13 +127,14 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>);
+          as _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i9.ProducerEntity>>> produce({
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i10.ProducerEntity>>>
+  produce({
     required String? roomId,
-    required _i10.MediaKind? kind,
-    required _i11.MediaStreamTrack? track,
+    required _i11.MediaKind? kind,
+    required _i12.MediaStreamTrack? track,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#produce, [], {
@@ -133,10 +144,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
             }),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i9.ProducerEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i10.ProducerEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i9.ProducerEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i10.ProducerEntity>>
                   >(
                     this,
                     Invocation.method(#produce, [], {
@@ -148,11 +159,11 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                 ),
           )
           as _i3.Future<
-            _i4.Either<_i5.Failure, _i6.Success<_i9.ProducerEntity>>
+            _i5.Either<_i6.Failure, _i7.Success<_i10.ProducerEntity>>
           >);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i12.ConsumerEntity>>>
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i13.ConsumerEntity>>>
   consume({
     required String? roomId,
     required String? producerId,
@@ -166,10 +177,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
             }),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i12.ConsumerEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i13.ConsumerEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i12.ConsumerEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i13.ConsumerEntity>>
                   >(
                     this,
                     Invocation.method(#consume, [], {
@@ -181,11 +192,11 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                 ),
           )
           as _i3.Future<
-            _i4.Either<_i5.Failure, _i6.Success<_i12.ConsumerEntity>>
+            _i5.Either<_i6.Failure, _i7.Success<_i13.ConsumerEntity>>
           >);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>> toggleAudio({
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>> toggleAudio({
     required String? producerId,
     required bool? pause,
   }) =>
@@ -195,8 +206,8 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
               #pause: pause,
             }),
             returnValue:
-                _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>.value(
-                  _i8.dummyValue<_i4.Either<_i5.Failure, _i6.Success<void>>>(
+                _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>.value(
+                  _i9.dummyValue<_i5.Either<_i6.Failure, _i7.Success<void>>>(
                     this,
                     Invocation.method(#toggleAudio, [], {
                       #producerId: producerId,
@@ -205,10 +216,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>);
+          as _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>> toggleCamera({
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>> toggleCamera({
     required String? producerId,
     required bool? pause,
   }) =>
@@ -218,8 +229,8 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
               #pause: pause,
             }),
             returnValue:
-                _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>.value(
-                  _i8.dummyValue<_i4.Either<_i5.Failure, _i6.Success<void>>>(
+                _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>.value(
+                  _i9.dummyValue<_i5.Either<_i6.Failure, _i7.Success<void>>>(
                     this,
                     Invocation.method(#toggleCamera, [], {
                       #producerId: producerId,
@@ -228,28 +239,28 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i3.Future<_i4.Either<_i5.Failure, _i6.Success<void>>>);
+          as _i3.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>>
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>>
   switchCamera() =>
       (super.noSuchMethod(
             Invocation.method(#switchCamera, []),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
                   >(this, Invocation.method(#switchCamera, [])),
                 ),
           )
           as _i3.Future<
-            _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+            _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
           >);
 
   @override
-  _i3.Future<_i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>>
+  _i3.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>>
   initLocalMedia({required bool? enableAudio, required bool? enableVideo}) =>
       (super.noSuchMethod(
             Invocation.method(#initLocalMedia, [], {
@@ -258,10 +269,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
             }),
             returnValue:
                 _i3.Future<
-                  _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
                 >.value(
-                  _i8.dummyValue<
-                    _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
                   >(
                     this,
                     Invocation.method(#initLocalMedia, [], {
@@ -272,6 +283,6 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                 ),
           )
           as _i3.Future<
-            _i4.Either<_i5.Failure, _i6.Success<_i13.LocalMediaEntity>>
+            _i5.Either<_i6.Failure, _i7.Success<_i14.LocalMediaEntity>>
           >);
 }

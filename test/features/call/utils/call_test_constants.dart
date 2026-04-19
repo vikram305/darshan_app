@@ -192,3 +192,50 @@ const tSwitchCameraParams = SwitchCameraParams();
 const tInitMediaParams = InitLocalMediaParams(enableAudio: true, enableVideo: true);
 const tInitMediaParamsAudioOnly = InitLocalMediaParams(enableAudio: true, enableVideo: false);
 const tInitMediaParamsBothOff = InitLocalMediaParams(enableAudio: false, enableVideo: false);
+
+// ---------------------------------------------------------------------------
+// JSON Maps (Data Layer)
+// ---------------------------------------------------------------------------
+
+final tProducerJson = {
+  'id': tProducerId,
+  'kind': 'audio',
+  'isPaused': false,
+  'isScreenShare': false,
+};
+
+final tConsumerJson = {
+  'id': tConsumerId,
+  'producerId': tRemoteProducerId,
+  'peerId': tPeerId,
+  'kind': 'video',
+  'isPaused': false,
+  'rtpParameters': tRtpParameters,
+};
+
+final tPeerJson = {
+  'id': tHostPeerId,
+  'displayName': tDisplayName,
+  'producers': [tProducerJson],
+  'consumers': [],
+  'isAudioMuted': false,
+  'isCameraOff': false,
+  'isScreenSharing': false,
+};
+
+final tRoomJson = {
+  'id': tRoomId,
+  'hostPeerId': tHostPeerId,
+  'peers': [tPeerJson],
+  'createdAt': '2026-04-14T10:00:00.000',
+  'isActive': true,
+};
+
+final tTransportJson = {
+  'id': 'transport-001',
+  'iceParameters': tIceParameters,
+  'iceCandidates': tIceCandidates,
+  'dtlsParameters': tDtlsParameters,
+  'sctpParameters': null,
+};
+

@@ -30,4 +30,21 @@ class RoomEntity extends Equatable {
 
   @override
   List<Object?> get props => [id, hostPeerId, peers, createdAt, isActive];
+
+  RoomEntity copyWith({
+    String? id,
+    String? hostPeerId,
+    List<PeerEntity>? peers,
+    DateTime? createdAt,
+    bool? isActive,
+  }) {
+    return RoomEntity(
+      id: id ?? this.id,
+      hostPeerId: hostPeerId ?? this.hostPeerId,
+      peers: peers ?? this.peers,
+      createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
+    );
+  }
 }
+

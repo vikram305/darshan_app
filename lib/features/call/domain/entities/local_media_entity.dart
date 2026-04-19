@@ -30,4 +30,21 @@ class LocalMediaEntity extends Equatable {
 
   @override
   List<Object?> get props => [localStream, isMicEnabled, isCameraEnabled, isFrontCamera, availableDevices];
+
+  LocalMediaEntity copyWith({
+    MediaStream? localStream,
+    bool? isMicEnabled,
+    bool? isCameraEnabled,
+    bool? isFrontCamera,
+    List<MediaDeviceInfo>? availableDevices,
+  }) {
+    return LocalMediaEntity(
+      localStream: localStream ?? this.localStream,
+      isMicEnabled: isMicEnabled ?? this.isMicEnabled,
+      isCameraEnabled: isCameraEnabled ?? this.isCameraEnabled,
+      isFrontCamera: isFrontCamera ?? this.isFrontCamera,
+      availableDevices: availableDevices ?? this.availableDevices,
+    );
+  }
 }
+

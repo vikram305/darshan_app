@@ -1,3 +1,4 @@
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:equatable/equatable.dart';
 import 'media_kind.dart';
 
@@ -23,6 +24,9 @@ class ConsumerEntity extends Equatable {
   /// Raw RTP parameters returned by the server; must be forwarded to the Mediasoup Device unchanged.
   final Map<String, dynamic> rtpParameters;
 
+  /// The actual media stream for rendering. Received from Mediasoup Transport.
+  final MediaStream? stream;
+
   const ConsumerEntity({
     required this.id,
     required this.producerId,
@@ -30,8 +34,30 @@ class ConsumerEntity extends Equatable {
     required this.kind,
     required this.isPaused,
     required this.rtpParameters,
+    this.stream,
   });
 
   @override
-  List<Object?> get props => [id, producerId, peerId, kind, isPaused, rtpParameters];
+  List<Object?> get props => [id, producerId, peerId, kind, isPaused, rtpParameters, stream];
+
+  ConsumerEntity copyWith({
+    String? id,
+    String? producerId,
+    String? peerId,
+    MediaKind? kind,
+    bool? isPaused,
+    Map<String, dynamic>? rtpParameters,
+    MediaStream? stream,
+  }) {
+    return ConsumerEntity(
+      id: id ?? this.id,
+      producerId: producerId ?? this.producerId,
+      peerId: peerId ?? this.peerId,
+      kind: kind ?? this.kind,
+      isPaused: isPaused ?? this.isPaused,
+      rtpParameters: rtpParameters ?? this.rtpParameters,
+      stream: stream ?? this.stream,
+    );
+  }
 }
+

@@ -3,6 +3,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/usecase/success.dart';
+import '../entities/call_event.dart';
 import '../entities/consumer_entity.dart';
 import '../entities/local_media_entity.dart';
 import '../entities/media_kind.dart';
@@ -13,7 +14,11 @@ import '../entities/room_entity.dart';
 /// The implementation lives in the data layer and is injected at runtime.
 /// Every method returns `Either<Failure, Success<T>>` — never throws.
 abstract class CallRepository {
+  /// Stream of real-time server events (peers joining, media producers, etc.)
+  Stream<CallEvent> get onCallEvent;
+
   /// Creates a new room on the server and returns it with the host peer pre-populated.
+
   Future<Either<Failure, Success<RoomEntity>>> createRoom({
     required String displayName,
   });
