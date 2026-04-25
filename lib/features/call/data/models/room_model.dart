@@ -8,19 +8,23 @@ class RoomModel extends RoomEntity {
     required super.peers,
     required super.createdAt,
     required super.isActive,
+    super.myPeerId,
   });
 
-  factory RoomModel.fromJson(Map<String, dynamic> json) {
+  factory RoomModel.fromJson(Map<String, dynamic> json, {String? myPeerId}) {
     return RoomModel(
-      id: json['id'] as String,
-      hostPeerId: json['hostPeerId'] as String,
-      peers: (json['peers'] as List)
+      id: (json['code'] ?? json['id'] ?? '') as String,
+      hostPeerId: (json['hostPeerId'] ?? '') as String,
+      peers: (json['peers'] as List? ?? [])
           .map((p) => PeerModel.fromJson(p as Map<String, dynamic>))
           .toList(),
-      createdAt: json['createdAt'] is DateTime
-          ? json['createdAt'] as DateTime
-          : DateTime.parse(json['createdAt'] as String),
-      isActive: json['isActive'] as bool,
+      createdAt: json['createdAt'] != null
+          ? (json['createdAt'] is DateTime
+              ? json['createdAt'] as DateTime
+              : DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now())
+          : DateTime.now(),
+      isActive: (json['isActive'] ?? true) as bool,
+      myPeerId: myPeerId ?? json['myPeerId'] as String?,
     );
   }
 

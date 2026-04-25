@@ -33,13 +33,14 @@ class CallRepositoryImpl implements CallRepository {
         .map((event) {
           final type = event['type'];
           final data = event['data'];
+          print('📡 Repository received event: $type');
 
           switch (type) {
-            case 'newPeer':
+            case 'peer-joined':
               return PeerJoinedEvent(PeerModel.fromJson(data));
-            case 'peerClosed':
-              return PeerLeftEvent(data['peerId']);
-            case 'newProducer':
+            case 'peer-left':
+              return PeerLeftEvent(data['peerId'] ?? '');
+            case 'new-producer':
               return ProducerJoinedEvent(
                 peerId: data['peerId'],
                 producerId: data['producerId'],
@@ -47,7 +48,7 @@ class CallRepositoryImpl implements CallRepository {
                     ? MediaKind.video
                     : MediaKind.audio,
               );
-            case 'producerClosed':
+            case 'producer-closed':
               return ProducerClosedEvent(
                 peerId: data['peerId'],
                 producerId: data['producerId'],
@@ -98,12 +99,14 @@ class CallRepositoryImpl implements CallRepository {
     required String roomId,
     required MediaKind kind,
     required MediaStreamTrack track,
+    required MediaStream stream,
   }) async {
     return _handleNetworkAndServerErrors(() async {
       final producer = await remoteDataSource.produce(
         roomId: roomId,
         kind: kind,
         track: track,
+        stream: stream,
       );
       return Success(producer);
     });

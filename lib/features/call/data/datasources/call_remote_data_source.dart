@@ -22,6 +22,7 @@ abstract class CallRemoteDataSource {
     required String roomId,
     required MediaKind kind,
     required MediaStreamTrack track,
+    required MediaStream stream,
   });
 
   /// Emits 'consume' socket event and handles transport signaling.

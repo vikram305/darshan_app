@@ -20,16 +20,20 @@ class RoomEntity extends Equatable {
   /// False once the last peer leaves or the host explicitly closes the room.
   final bool isActive;
 
+  /// The local user's Peer ID in this room.
+  final String? myPeerId;
+
   const RoomEntity({
     required this.id,
     required this.hostPeerId,
     required this.peers,
     required this.createdAt,
     required this.isActive,
+    this.myPeerId,
   });
 
   @override
-  List<Object?> get props => [id, hostPeerId, peers, createdAt, isActive];
+  List<Object?> get props => [id, hostPeerId, peers, createdAt, isActive, myPeerId];
 
   RoomEntity copyWith({
     String? id,
@@ -37,6 +41,7 @@ class RoomEntity extends Equatable {
     List<PeerEntity>? peers,
     DateTime? createdAt,
     bool? isActive,
+    String? myPeerId,
   }) {
     return RoomEntity(
       id: id ?? this.id,
@@ -44,7 +49,7 @@ class RoomEntity extends Equatable {
       peers: peers ?? this.peers,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
+      myPeerId: myPeerId ?? this.myPeerId,
     );
   }
 }
-

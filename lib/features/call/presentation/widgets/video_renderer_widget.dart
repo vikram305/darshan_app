@@ -57,20 +57,45 @@ class _VideoRendererWidgetState extends State<VideoRendererWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_isRendererInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
-    if (widget.stream == null || widget.stream!.getVideoTracks().isEmpty || !widget.stream!.getVideoTracks().first.enabled) {
-      // Stream is null or video is disabled
+    if (widget.stream == null) {
       return Container(
         color: Colors.black87,
         child: const Center(
-          child: Icon(
-            Icons.videocam_off,
-            color: Colors.white54,
-            size: 48,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.videocam_off, color: Colors.white24, size: 48),
+              SizedBox(height: 8),
+              Text('No Stream', style: TextStyle(color: Colors.white24)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final hasVideo = widget.stream!.getVideoTracks().isNotEmpty;
+    final isVideoEnabled =
+        hasVideo && widget.stream!.getVideoTracks().first.enabled;
+
+    if (!hasVideo || !isVideoEnabled) {
+      return Container(
+        color: Colors.black87,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.videocam_off, color: Colors.white54, size: 48),
+              const SizedBox(height: 8),
+              Text(
+                widget.isLocal
+                    ? 'Your camera is off'
+                    : 'User turned off camera',
+                style: const TextStyle(color: Colors.white54),
+              ),
+            ],
           ),
         ),
       );

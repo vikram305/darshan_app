@@ -15,17 +15,17 @@ class PeerModel extends PeerEntity {
 
   factory PeerModel.fromJson(Map<String, dynamic> json) {
     return PeerModel(
-      id: json['id'] as String,
-      displayName: json['displayName'] as String,
-      producers: (json['producers'] as List)
+      id: (json['id'] ?? '') as String,
+      displayName: (json['name'] ?? json['displayName'] ?? 'Unknown') as String,
+      producers: (json['producers'] as List? ?? [])
           .map((p) => ProducerModel.fromJson(p as Map<String, dynamic>))
           .toList(),
-      consumers: (json['consumers'] as List)
+      consumers: (json['consumers'] as List? ?? [])
           .map((c) => ConsumerModel.fromJson(c as Map<String, dynamic>))
           .toList(),
-      isAudioMuted: json['isAudioMuted'] as bool,
-      isCameraOff: json['isCameraOff'] as bool,
-      isScreenSharing: json['isScreenSharing'] as bool,
+      isAudioMuted: (json['isAudioMuted'] ?? false) as bool,
+      isCameraOff: (json['isCameraOff'] ?? false) as bool,
+      isScreenSharing: (json['isScreenSharing'] ?? false) as bool,
     );
   }
 

@@ -20,6 +20,7 @@ class ProduceMediaUsecase extends UseCase<ProducerEntity, ProduceMediaParams> {
       roomId: params.roomId,
       kind: params.kind,
       track: params.track,
+      stream: params.stream,
     );
   }
 }
@@ -28,13 +29,15 @@ class ProduceMediaParams extends Equatable {
   final String roomId;
   final MediaKind kind;
   final MediaStreamTrack track;
+  final MediaStream stream;
 
   const ProduceMediaParams({
     required this.roomId,
     required this.kind,
     required this.track,
+    required this.stream,
   });
 
   @override
-  List<Object?> get props => [roomId, kind, track];
+  List<Object?> get props => [roomId, kind, track, stream];
 }

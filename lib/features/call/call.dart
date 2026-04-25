@@ -1,5 +1,6 @@
 // Presentation
-export 'presentation/pages/call_page.dart';
+export 'presentation/pages/lobby_page.dart';
+export 'presentation/pages/room_page.dart';
 export 'presentation/bloc/call_fetcher_bloc.dart';
 export 'presentation/bloc/call_fetcher_filter.dart';
 export 'presentation/cubit/call_ui_cubit.dart';

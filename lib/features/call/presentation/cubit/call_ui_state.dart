@@ -7,12 +7,14 @@ class CallUiState extends BaseUiState<RoomEntity> {
   final bool isSendingTransportReady;
   final bool isReceivingTransportReady;
 
+  final String? myPeerId;
   const CallUiState({
     super.originalData,
     super.viewData,
     this.localMedia,
     this.isSendingTransportReady = false,
     this.isReceivingTransportReady = false,
+    this.myPeerId,
   });
 
   @override
@@ -22,6 +24,7 @@ class CallUiState extends BaseUiState<RoomEntity> {
     LocalMediaEntity? localMedia,
     bool? isSendingTransportReady,
     bool? isReceivingTransportReady,
+    String? myPeerId,
   }) {
     return CallUiState(
       originalData: originalData ?? this.originalData,
@@ -29,6 +32,7 @@ class CallUiState extends BaseUiState<RoomEntity> {
       localMedia: localMedia ?? this.localMedia,
       isSendingTransportReady: isSendingTransportReady ?? this.isSendingTransportReady,
       isReceivingTransportReady: isReceivingTransportReady ?? this.isReceivingTransportReady,
+      myPeerId: myPeerId ?? this.myPeerId,
     );
   }
 

@@ -15,6 +15,10 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   Device? _device;
   Transport? _sendTransport;
   Transport? _recvTransport;
+  Completer<Transport>? _recvTransportCompleter;
+  final Map<String, Completer<Consumer>> _consumerCompleters = {};
+  String? _peerId;
+  String? _roomId;
 
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
 
@@ -34,14 +38,14 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
       _eventController.add({'type': 'disconnected'});
     });
 
-    // Mediasoup peer/producer events
+    // Mediasoup peer/producer events (Backend constants)
     final events = [
-      'newPeer',
-      'peerClosed',
-      'newProducer',
-      'producerClosed',
-      'producerPaused',
-      'producerResumed',
+      'peer-joined',
+      'peer-left',
+      'new-producer',
+      'producer-closed',
+      'producer-paused',
+      'producer-resumed',
     ];
     for (final event in events) {
       socket.on(event, (data) {
@@ -52,13 +56,26 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
 
   /// Helper for promising socket.emitWithAck
   Future<dynamic> _emitWithAck(String event, [dynamic data]) {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
     final completer = Completer<dynamic>();
     socket.emitWithAck(
       event,
       data,
       ack: (response) {
-        if (response != null && response['error'] != null) {
-          completer.completeError(ServerException(response['error']));
+        if (response != null && response is Map && response['error'] != null) {
+          final error = response['error'];
+          String message;
+          if (error is Map) {
+            // Handle Zod format() or custom error objects
+            message = error.toString();
+          } else {
+            message = error.toString();
+          }
+          print('🔴 Server Error: $message');
+          completer.completeError(ServerException(message));
         } else {
           completer.complete(response);
         }
@@ -67,20 +84,35 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
 
     // Fallback timeout to prevent infinite hangs
     return completer.future.timeout(
-      const Duration(seconds: 10),
-      onTimeout: () => throw ServerException('Socket timeout on event $event'),
+      const Duration(seconds: 15),
+      onTimeout: () {
+        final status = socket.connected ? 'Connected' : 'Disconnected';
+        throw ServerException(
+          'Socket timeout on event $event (Status: $status, ID: ${socket.id})',
+        );
+      },
     );
   }
 
   @override
   Future<RoomModel> createRoom(String displayName) async {
     try {
-      final response = await _emitWithAck('createRoom', {
+      final response = await _emitWithAck('create-room', {
         'displayName': displayName,
       });
-      // A full implementation would map the response directly.
-      // Below is an example parsing.
-      return RoomModel.fromJson(response);
+
+      // Backend returns { roomId, deviceId, success } for create-room
+      _roomId = response['roomId'];
+      _peerId = response['deviceId'];
+
+      return RoomModel(
+        id: _roomId!,
+        hostPeerId: _peerId!,
+        peers: [],
+        createdAt: DateTime.now(),
+        isActive: true,
+        myPeerId: _peerId,
+      );
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('Failed to create room: $e');
@@ -90,19 +122,44 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   @override
   Future<RoomModel> joinRoom(String roomId, String displayName) async {
     try {
-      final response = await _emitWithAck('joinRoom', {
-        'roomId': roomId,
-        'displayName': displayName,
+      final response = await _emitWithAck('join-room', {
+        'code': roomId,
+        'peerName': displayName,
       });
 
-      // Initialize Mediasoup Device after joining room and getting Router RTP Capabilities
-      final routerRtpCapabilities = response['routerRtpCapabilities'];
+      // Requesting capabilities separately if needed
+      final capsResponse = await _emitWithAck('get-router-rtp-capabilities', {
+        'roomId': roomId,
+      });
+      final routerRtpCapabilities = capsResponse['rtpCapabilities'];
+      print('📦 Received Router RTP Capabilities');
+
       _device = Device();
       await _device!.load(
-        routerRtpCapabilities: RtpCapabilities.fromMap(routerRtpCapabilities),
+        routerRtpCapabilities: routerRtpCapabilities is Map
+            ? RtpCapabilities.fromMap(
+                routerRtpCapabilities as Map<String, dynamic>,
+              )
+            : routerRtpCapabilities,
       );
+      print('✅ Mediasoup Device loaded');
 
-      return RoomModel.fromJson(response['room']);
+      _roomId = roomId;
+      _peerId = response['peer'] != null ? response['peer']['id'] : null;
+
+      // Handle initial producers already in the room
+      if (response['producers'] != null) {
+        final List initialProducers = response['producers'];
+        print('📋 Handling ${initialProducers.length} initial producers');
+        for (var p in initialProducers) {
+          // Send to event controller with a small delay to ensure repository is listening
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _eventController.add({'type': 'new-producer', 'data': p});
+          });
+        }
+      }
+
+      return RoomModel.fromJson(response['room'] ?? {}, myPeerId: _peerId);
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('Failed to join room: $e');
@@ -112,7 +169,7 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   @override
   Future<void> leaveRoom(String roomId, String peerId) async {
     try {
-      await _emitWithAck('leaveRoom', {'roomId': roomId, 'peerId': peerId});
+      await _emitWithAck('leave-room', {'roomId': roomId, 'peerId': peerId});
       // Cleanup transports
       _sendTransport?.close();
       _recvTransport?.close();
@@ -130,59 +187,111 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
     required String roomId,
     required MediaKind kind,
     required MediaStreamTrack track,
+    required MediaStream stream,
   }) async {
+    print('🎙️ Starting produce for room: $roomId, kind: ${kind.name}');
     if (_device == null || !_device!.loaded) {
       throw TransportException('Mediasoup device not initialized');
     }
 
     try {
       if (_sendTransport == null) {
-        final transportInfo = await _emitWithAck('createWebRtcTransport', {
-          'forceTcp': false,
-          'producing': true,
-          'consuming': false,
+        print('🌐 Creating send transport...');
+        final transportInfo = await _emitWithAck('create-transport', {
+          'roomId': roomId,
+          'peerId': _peerId,
+          'direction': 'send',
         });
 
-        _sendTransport = _device!.createSendTransportFromMap(transportInfo);
+        final options = transportInfo['transportOptions'];
+        print('📦 Received send transport options: $options');
+        _sendTransport = _device!.createSendTransportFromMap(options);
 
         _sendTransport!.on('connect', (Map data) async {
           final Function callback = data['callback'];
-          await _emitWithAck('connectWebRtcTransport', {
-            'transportId': _sendTransport!.id,
-            'dtlsParameters': data['dtlsParameters'].toMap(),
-          });
-          callback();
+          final Function? errback = data['errback'];
+          print('🔗 Send transport connect event triggered');
+          try {
+            final payload = {
+              'roomId': roomId,
+              'peerId': _peerId,
+              'transportId': _sendTransport!.id,
+              'dtlsParameters': data['dtlsParameters'] is Map
+                  ? data['dtlsParameters']
+                  : data['dtlsParameters'].toMap(),
+            };
+            print('📡 Sending connect-transport: $payload');
+            await _emitWithAck('connect-transport', payload);
+            print('✅ Send transport connected on server');
+            callback();
+          } catch (e) {
+            final msg = e is ServerException ? e.message : e.toString();
+            print('❌ Error connecting send transport: $msg');
+            if (errback != null) errback(e);
+          }
+        });
+
+        _sendTransport!.on('connectionstatechange', (state) {
+          print('🌐 Send Transport connection state changed to: $state');
         });
 
         _sendTransport!.on('produce', (Map data) async {
           final Function callback = data['callback'];
-          final response = await _emitWithAck('produce', {
-            'transportId': _sendTransport!.id,
-            'kind': data['kind'],
-            'rtpParameters': data['rtpParameters'].toMap(),
-            if (data['appData'] != null)
-              'appData': Map<String, dynamic>.from(data['appData']),
-          });
-          callback(response['id']);
+          final Function? errback = data['errback'];
+          print(
+            '📤 Send transport produce event triggered: kind=${data['kind']}',
+          );
+          try {
+            final payload = {
+              'roomId': roomId,
+              'peerId': _peerId,
+              'transportId': _sendTransport!.id,
+              'kind': data['kind'],
+              'rtpParameters': data['rtpParameters'] is Map
+                  ? data['rtpParameters']
+                  : data['rtpParameters'].toMap(),
+              if (data['appData'] != null)
+                'appData': Map<String, dynamic>.from(data['appData']),
+            };
+            print('📡 Sending produce: $payload');
+            final response = await _emitWithAck('produce', payload);
+            print('✅ Server producer created: ${response['id']}');
+            callback(response['id']);
+          } catch (e) {
+            final msg = e is ServerException ? e.message : e.toString();
+            print('❌ Error producing media: $msg');
+            if (errback != null) errback(e);
+          }
         });
       }
 
       final completer = Completer<Producer>();
       _sendTransport!.producerCallback = (Producer producer) {
-        completer.complete(producer);
+        print('🎉 Producer created locally: ${producer.id}');
+        if (!completer.isCompleted) {
+          completer.complete(producer);
+        }
       };
 
-      final dummyStream = await createLocalMediaStream('dummy');
-      dummyStream.addTrack(track);
+      print('🚀 Calling transport.produce...');
+      // NOTE: Passing the original stream on mobile causes UnifiedPlan.send to crash or fail to extract the video track.
+      // So we dynamically create a new wrapper stream containing only the requested track.
+      final wrappedStream = await createLocalMediaStream('produce_${track.id}');
+      await wrappedStream.addTrack(track);
 
       _sendTransport!.produce(
         track: track,
-        stream: dummyStream,
+        stream: wrappedStream,
         source: kind == MediaKind.video ? 'webcam' : 'mic',
         appData: {'kind': kind.name},
       );
 
-      final producer = await completer.future;
+      final producer = await completer.future.timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw ServerException(
+          'Timed out waiting for local producer creation',
+        ),
+      );
 
       return ProducerModel(
         id: producer.id,
@@ -191,7 +300,9 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
         isScreenShare: false,
       );
     } catch (e) {
-      throw ServerException('Failed to produce media: $e');
+      final message = e is ServerException ? e.message : e.toString();
+      print('❌ Overall production failure: $message');
+      throw ServerException('Failed to produce media: $message');
     }
   }
 
@@ -201,64 +312,144 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
     required String producerId,
     required String peerId,
   }) async {
+    print('👁️ Starting consume: producer=$producerId from peer=$peerId');
     if (_device == null || !_device!.loaded) {
       throw TransportException('Mediasoup device not initialized');
     }
 
     try {
       if (_recvTransport == null) {
-        final transportInfo = await _emitWithAck('createWebRtcTransport', {
-          'forceTcp': false,
-          'producing': false,
-          'consuming': true,
-        });
-
-        _recvTransport = _device!.createRecvTransportFromMap(transportInfo);
-
-        _recvTransport!.on('connect', (Map data) async {
-          final Function callback = data['callback'];
-          await _emitWithAck('connectWebRtcTransport', {
-            'transportId': _recvTransport!.id,
-            'dtlsParameters': data['dtlsParameters'].toMap(),
+        if (_recvTransportCompleter != null) {
+          print('⏳ Waiting for recv transport creation in progress...');
+          _recvTransport = await _recvTransportCompleter!.future;
+        } else {
+          _recvTransportCompleter = Completer<Transport>();
+          print('🌐 Creating recv transport...');
+          final transportInfo = await _emitWithAck('create-transport', {
+            'roomId': roomId,
+            'peerId': _peerId,
+            'direction': 'recv',
           });
-          callback();
-        });
+
+          final options = transportInfo['transportOptions'];
+          print('📦 Received recv transport options: $options');
+          // Log the first candidate for debugging
+          if (options['iceCandidates'] != null &&
+              options['iceCandidates'].isNotEmpty) {
+            final candidate = options['iceCandidates'][0];
+            print(
+              '📍 Remote ICE Candidate: ${candidate['ip']}:${candidate['port']} (${candidate['protocol']})',
+            );
+          }
+
+          final transport = _device!.createRecvTransportFromMap(options);
+
+          transport.on('connect', (Map data) async {
+            final Function callback = data['callback'];
+            final Function? errback = data['errback'];
+            print('🔗 Recv transport connect event triggered');
+            try {
+              final payload = {
+                'roomId': roomId,
+                'peerId': _peerId,
+                'transportId': transport.id,
+                'dtlsParameters': data['dtlsParameters'] is Map
+                    ? data['dtlsParameters']
+                    : data['dtlsParameters'].toMap(),
+              };
+              print('📡 Sending connect-transport (recv): $payload');
+              await _emitWithAck('connect-transport', payload);
+              print('✅ Recv transport connected on server');
+              callback();
+            } catch (e) {
+              final msg = e is ServerException ? e.message : e.toString();
+              print('❌ Error connecting recv transport: $msg');
+              if (errback != null) errback(e);
+            }
+          });
+
+          transport.consumerCallback = (Consumer consumer, [Function? accept]) {
+            print('🎉 Consumer callback triggered for local ID: ${consumer.localId}, remote ID: ${consumer.id}');
+            if (accept != null) {
+              print('👌 Accepting consumer...');
+              accept();
+            }
+            final completer = _consumerCompleters.remove(consumer.id);
+            if (completer != null && !completer.isCompleted) {
+              completer.complete(consumer);
+            }
+          };
+
+          transport.on('connectionstatechange', (state) {
+            print('🌐 Recv Transport connection state changed to: $state');
+          });
+
+          _recvTransport = transport;
+          _recvTransportCompleter!.complete(transport);
+          _recvTransportCompleter = null;
+        }
       }
 
       final completer = Completer<Consumer>();
-      _recvTransport!.consumerCallback =
-          (Consumer consumer, [Function? accept]) {
-            if (accept != null) accept();
-            completer.complete(consumer);
-          };
 
       final rtpCapabilities = _device!.rtpCapabilities;
+      print('📥 Signaling consume to server...');
       final response = await _emitWithAck('consume', {
+        'roomId': roomId,
+        'peerId': _peerId,
         'producerId': producerId,
-        'rtpCapabilities': rtpCapabilities.toMap(),
+        'rtpCapabilities': rtpCapabilities is Map
+            ? rtpCapabilities
+            : rtpCapabilities.toMap(),
       });
 
+      final options = response['consumerOptions'];
+      final consumerId = options['id'];
+      _consumerCompleters[consumerId] = completer;
+      print('📦 Received consumer options: $options');
+
+      print('🚀 Calling transport.consume locally for $consumerId...');
       _recvTransport!.consume(
-        id: response['id'],
-        producerId: response['producerId'],
+        id: consumerId,
+        producerId: options['producerId'],
         peerId: peerId,
-        kind: RTCRtpMediaTypeExtension.fromString(response['kind']),
-        rtpParameters: RtpParameters.fromMap(response['rtpParameters']),
+        kind: RTCRtpMediaTypeExtension.fromString(options['kind']),
+        rtpParameters: RtpParameters.fromMap(options['rtpParameters']),
       );
 
-      final consumer = await completer.future;
+      final consumer = await completer.future.timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          _consumerCompleters.remove(consumerId);
+          throw ServerException('Timed out waiting for local consumer creation: $consumerId');
+        },
+      );
+
+      // Explicitly enable the track
+      print('📺 Consumer stream: tracks=${consumer.stream.getTracks().length}, trackId=${consumer.track.id}, kind=${consumer.track.kind}');
+      consumer.track.enabled = true;
+
+      print('⏯️ Signaling resume-consumer...');
+      await _emitWithAck('resume-consumer', {
+        'roomId': roomId,
+        'peerId': _peerId,
+        'consumerId': consumer.id,
+      });
+      print('✅ Consumer resumed successfully');
 
       return ConsumerModel(
         id: consumer.id,
         producerId: producerId,
         peerId: peerId,
-        kind: response['kind'] == 'video' ? MediaKind.video : MediaKind.audio,
-        isPaused: false,
-        rtpParameters: response['rtpParameters'],
+        kind: options['kind'] == 'video' ? MediaKind.video : MediaKind.audio,
+        isPaused: options['producerPaused'] ?? false,
+        rtpParameters: options['rtpParameters'],
         stream: consumer.stream,
       );
     } catch (e) {
-      throw ServerException('Failed to consume media: $e');
+      final message = e is ServerException ? e.message : e.toString();
+      print('❌ Overall consumption failure: $message');
+      throw ServerException('Failed to consume media: $message');
     }
   }
 

@@ -17,17 +17,24 @@ import '../utils/call_test_constants.dart';
 
 import 'call_ui_cubit_test.mocks.dart';
 
+import 'package:darshan_app/features/call/domain/usecases/produce_media_usecase.dart';
 import 'package:darshan_app/features/call/domain/usecases/consume_media_usecase.dart';
 import 'package:darshan_app/features/call/domain/repositories/call_repository.dart';
-import 'call_ui_cubit_test.mocks.dart';
 
+@GenerateMocks([
+  InitLocalMediaUsecase,
+  SwitchCameraUsecase,
+  ConsumeMediaUsecase,
+  CallRepository,
+])
+class MockProduceMediaUsecase extends Mock implements ProduceMediaUsecase {}
 
-@GenerateMocks([InitLocalMediaUsecase, SwitchCameraUsecase, ConsumeMediaUsecase, CallRepository])
 void main() {
   late CallUiCubit cubit;
   late MockInitLocalMediaUsecase mockInitLocalMedia;
   late MockSwitchCameraUsecase mockSwitchCamera;
   late MockConsumeMediaUsecase mockConsumeMedia;
+  late MockProduceMediaUsecase mockProduceMedia;
   late MockCallRepository mockRepository;
 
   setUp(() {
@@ -35,6 +42,7 @@ void main() {
     mockInitLocalMedia = MockInitLocalMediaUsecase();
     mockSwitchCamera = MockSwitchCameraUsecase();
     mockConsumeMedia = MockConsumeMediaUsecase();
+    mockProduceMedia = MockProduceMediaUsecase();
     mockRepository = MockCallRepository();
 
     // Mock onCallEvent stream to avoid errors
@@ -44,6 +52,7 @@ void main() {
       initLocalMediaUsecase: mockInitLocalMedia,
       switchCameraUsecase: mockSwitchCamera,
       consumeMediaUsecase: mockConsumeMedia,
+      produceMediaUsecase: mockProduceMedia,
       repository: mockRepository,
     );
   });

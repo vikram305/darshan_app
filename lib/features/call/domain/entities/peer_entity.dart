@@ -39,4 +39,23 @@ class PeerEntity extends Equatable {
 
   @override
   List<Object?> get props => [id, displayName, producers, consumers, isAudioMuted, isCameraOff, isScreenSharing];
+  PeerEntity copyWith({
+    String? id,
+    String? displayName,
+    List<ProducerEntity>? producers,
+    List<ConsumerEntity>? consumers,
+    bool? isAudioMuted,
+    bool? isCameraOff,
+    bool? isScreenSharing,
+  }) {
+    return PeerEntity(
+      id: id ?? this.id,
+      displayName: displayName ?? this.displayName,
+      producers: producers ?? this.producers,
+      consumers: consumers ?? this.consumers,
+      isAudioMuted: isAudioMuted ?? this.isAudioMuted,
+      isCameraOff: isCameraOff ?? this.isCameraOff,
+      isScreenSharing: isScreenSharing ?? this.isScreenSharing,
+    );
+  }
 }

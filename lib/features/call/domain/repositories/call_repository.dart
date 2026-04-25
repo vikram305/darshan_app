@@ -45,6 +45,7 @@ abstract class CallRepository {
     required String roomId,
     required MediaKind kind,
     required MediaStreamTrack track,
+    required MediaStream stream,
   });
 
   /// Requests consumption of a remote producer, returning a [ConsumerEntity] with RTP params
