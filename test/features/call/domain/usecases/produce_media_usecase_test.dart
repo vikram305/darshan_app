@@ -16,16 +16,18 @@ import 'usecases_test.mocks.dart';
 import 'produce_media_usecase_test.mocks.dart';
 
 /// [MediaStreamTrack] is a native platform object — it must be mocked in unit tests.
-@GenerateMocks([MediaStreamTrack])
+@GenerateMocks([MediaStreamTrack, MediaStream])
 void main() {
   late MockCallRepository mockRepo;
   late ProduceMediaUsecase usecase;
   late MockMediaStreamTrack mockTrack;
+  late MockMediaStream mockStream;
 
   setUp(() {
     mockRepo = MockCallRepository();
     usecase = ProduceMediaUsecase(mockRepo);
     mockTrack = MockMediaStreamTrack();
+    mockStream = MockMediaStream();
     provideDummy<Either<Failure, Success<ProducerEntity>>>(Right(tSuccessProducer));
   });
 
@@ -38,12 +40,14 @@ void main() {
           roomId: anyNamed('roomId'),
           kind: anyNamed('kind'),
           track: anyNamed('track'),
+          stream: anyNamed('stream'),
         )).thenAnswer((_) async => Right(tSuccessProducer));
 
         final params = ProduceMediaParams(
           roomId: tRoomId,
           kind: MediaKind.video,
           track: mockTrack,
+          stream: mockStream,
         );
         final result = await usecase.call(params);
 
@@ -52,6 +56,7 @@ void main() {
           roomId: tRoomId,
           kind: MediaKind.video,
           track: mockTrack,
+          stream: mockStream,
         )).called(1);
         verifyNoMoreInteractions(mockRepo);
       },
@@ -65,12 +70,14 @@ void main() {
           roomId: anyNamed('roomId'),
           kind: anyNamed('kind'),
           track: anyNamed('track'),
+          stream: anyNamed('stream'),
         )).thenAnswer((_) async => const Left(tInternetFailure));
 
         final params = ProduceMediaParams(
           roomId: tRoomId,
           kind: MediaKind.video,
           track: mockTrack,
+          stream: mockStream,
         );
         final result = await usecase.call(params);
 
@@ -86,12 +93,14 @@ void main() {
           roomId: anyNamed('roomId'),
           kind: anyNamed('kind'),
           track: anyNamed('track'),
+          stream: anyNamed('stream'),
         )).thenAnswer((_) async => const Left(tTransportFailure));
 
         final params = ProduceMediaParams(
           roomId: tRoomId,
           kind: MediaKind.audio,
           track: mockTrack,
+          stream: mockStream,
         );
         final result = await usecase.call(params);
 

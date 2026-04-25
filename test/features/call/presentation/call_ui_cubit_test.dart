@@ -25,10 +25,9 @@ import 'package:darshan_app/features/call/domain/repositories/call_repository.da
   InitLocalMediaUsecase,
   SwitchCameraUsecase,
   ConsumeMediaUsecase,
+  ProduceMediaUsecase,
   CallRepository,
 ])
-class MockProduceMediaUsecase extends Mock implements ProduceMediaUsecase {}
-
 void main() {
   late CallUiCubit cubit;
   late MockInitLocalMediaUsecase mockInitLocalMedia;

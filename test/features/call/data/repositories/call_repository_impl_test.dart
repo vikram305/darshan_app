@@ -21,19 +21,27 @@ import 'package:mockito/mockito.dart';
 import '../../utils/call_test_constants.dart';
 import 'call_repository_impl_test.mocks.dart';
 
-@GenerateMocks([CallRemoteDataSource, MediaDataSource, NetworkInfo, MediaStreamTrack])
+@GenerateMocks([
+  CallRemoteDataSource,
+  MediaDataSource,
+  NetworkInfo,
+  MediaStreamTrack,
+  MediaStream,
+])
 void main() {
   late CallRepositoryImpl repository;
   late MockCallRemoteDataSource mockRemoteDataSource;
   late MockMediaDataSource mockMediaDataSource;
   late MockNetworkInfo mockNetworkInfo;
   late MockMediaStreamTrack mockTrack;
+  late MockMediaStream mockStream;
 
   setUp(() {
     mockRemoteDataSource = MockCallRemoteDataSource();
     mockMediaDataSource = MockMediaDataSource();
     mockNetworkInfo = MockNetworkInfo();
     mockTrack = MockMediaStreamTrack();
+    mockStream = MockMediaStream();
     repository = CallRepositoryImpl(
       remoteDataSource: mockRemoteDataSource,
       mediaDataSource: mockMediaDataSource,
@@ -115,12 +123,14 @@ void main() {
           roomId: anyNamed('roomId'),
           kind: anyNamed('kind'),
           track: anyNamed('track'),
+          stream: anyNamed('stream'),
         )).thenThrow(TransportException(tTransportMessage));
 
         final result = await repository.produce(
           roomId: tRoomId,
           kind: MediaKind.audio,
           track: mockTrack,
+          stream: mockStream,
         );
         expect(result, equals(const Left(TransportFailure(tTransportMessage))));
       });

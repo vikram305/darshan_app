@@ -8,26 +8,28 @@ import 'dart:async' as _i4;
 import 'package:darshan_app/core/error/failure.dart' as _i6;
 import 'package:darshan_app/core/usecase/success.dart' as _i7;
 import 'package:darshan_app/features/call/domain/entities/call_event.dart'
-    as _i13;
+    as _i15;
 import 'package:darshan_app/features/call/domain/entities/consumer_entity.dart'
     as _i12;
 import 'package:darshan_app/features/call/domain/entities/local_media_entity.dart'
     as _i8;
 import 'package:darshan_app/features/call/domain/entities/media_kind.dart'
-    as _i16;
+    as _i17;
 import 'package:darshan_app/features/call/domain/entities/producer_entity.dart'
-    as _i15;
-import 'package:darshan_app/features/call/domain/entities/room_entity.dart'
     as _i14;
+import 'package:darshan_app/features/call/domain/entities/room_entity.dart'
+    as _i16;
 import 'package:darshan_app/features/call/domain/repositories/call_repository.dart'
     as _i2;
 import 'package:darshan_app/features/call/domain/usecases/consume_media_usecase.dart'
     as _i11;
 import 'package:darshan_app/features/call/domain/usecases/init_local_media_usecase.dart'
     as _i3;
+import 'package:darshan_app/features/call/domain/usecases/produce_media_usecase.dart'
+    as _i13;
 import 'package:darshan_app/features/call/domain/usecases/switch_camera_usecase.dart'
     as _i10;
-import 'package:flutter_webrtc/flutter_webrtc.dart' as _i17;
+import 'package:flutter_webrtc/flutter_webrtc.dart' as _i18;
 import 'package:fpdart/fpdart.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i9;
@@ -173,6 +175,46 @@ class MockConsumeMediaUsecase extends _i1.Mock
           >);
 }
 
+/// A class which mocks [ProduceMediaUsecase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockProduceMediaUsecase extends _i1.Mock
+    implements _i13.ProduceMediaUsecase {
+  MockProduceMediaUsecase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.CallRepository get repository =>
+      (super.noSuchMethod(
+            Invocation.getter(#repository),
+            returnValue: _FakeCallRepository_0(
+              this,
+              Invocation.getter(#repository),
+            ),
+          )
+          as _i2.CallRepository);
+
+  @override
+  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>> call(
+    _i13.ProduceMediaParams? params,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [params]),
+            returnValue:
+                _i4.Future<
+                  _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
+                >.value(
+                  _i9.dummyValue<
+                    _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
+                  >(this, Invocation.method(#call, [params])),
+                ),
+          )
+          as _i4.Future<
+            _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
+          >);
+}
+
 /// A class which mocks [CallRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -182,25 +224,25 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
   }
 
   @override
-  _i4.Stream<_i13.CallEvent> get onCallEvent =>
+  _i4.Stream<_i15.CallEvent> get onCallEvent =>
       (super.noSuchMethod(
             Invocation.getter(#onCallEvent),
-            returnValue: _i4.Stream<_i13.CallEvent>.empty(),
+            returnValue: _i4.Stream<_i15.CallEvent>.empty(),
           )
-          as _i4.Stream<_i13.CallEvent>);
+          as _i4.Stream<_i15.CallEvent>);
 
   @override
-  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>> createRoom({
+  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>> createRoom({
     required String? displayName,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createRoom, [], {#displayName: displayName}),
             returnValue:
                 _i4.Future<
-                  _i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>
                 >.value(
                   _i9.dummyValue<
-                    _i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>
+                    _i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>
                   >(
                     this,
                     Invocation.method(#createRoom, [], {
@@ -209,10 +251,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>>);
+          as _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>>);
 
   @override
-  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>> joinRoom({
+  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>> joinRoom({
     required String? roomId,
     required String? displayName,
   }) =>
@@ -223,10 +265,10 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
             }),
             returnValue:
                 _i4.Future<
-                  _i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>
                 >.value(
                   _i9.dummyValue<
-                    _i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>
+                    _i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>
                   >(
                     this,
                     Invocation.method(#joinRoom, [], {
@@ -236,7 +278,7 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                   ),
                 ),
           )
-          as _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.RoomEntity>>>);
+          as _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i16.RoomEntity>>>);
 
   @override
   _i4.Future<_i5.Either<_i6.Failure, _i7.Success<void>>> leaveRoom({
@@ -262,36 +304,39 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
           as _i4.Future<_i5.Either<_i6.Failure, _i7.Success<void>>>);
 
   @override
-  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i15.ProducerEntity>>>
+  _i4.Future<_i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>>
   produce({
     required String? roomId,
-    required _i16.MediaKind? kind,
-    required _i17.MediaStreamTrack? track,
+    required _i17.MediaKind? kind,
+    required _i18.MediaStreamTrack? track,
+    required _i18.MediaStream? stream,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#produce, [], {
               #roomId: roomId,
               #kind: kind,
               #track: track,
+              #stream: stream,
             }),
             returnValue:
                 _i4.Future<
-                  _i5.Either<_i6.Failure, _i7.Success<_i15.ProducerEntity>>
+                  _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
                 >.value(
                   _i9.dummyValue<
-                    _i5.Either<_i6.Failure, _i7.Success<_i15.ProducerEntity>>
+                    _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
                   >(
                     this,
                     Invocation.method(#produce, [], {
                       #roomId: roomId,
                       #kind: kind,
                       #track: track,
+                      #stream: stream,
                     }),
                   ),
                 ),
           )
           as _i4.Future<
-            _i5.Either<_i6.Failure, _i7.Success<_i15.ProducerEntity>>
+            _i5.Either<_i6.Failure, _i7.Success<_i14.ProducerEntity>>
           >);
 
   @override

@@ -30,12 +30,16 @@ import '../../utils/call_test_constants.dart';
 import 'usecases_test.mocks.dart';
 import 'extended_usecases_test.mocks.dart';
 
-@GenerateMocks([MediaStreamTrack])
+@GenerateMocks([MediaStreamTrack, MediaStream])
 void main() {
   late MockCallRepository mockRepo;
+  late MockMediaStreamTrack mockTrack;
+  late MockMediaStream mockStream;
 
   setUp(() {
     mockRepo = MockCallRepository();
+    mockTrack = MockMediaStreamTrack();
+    mockStream = MockMediaStream();
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -122,11 +126,9 @@ void main() {
 
   group('ProduceMediaUsecase — MediaPermissionFailure', () {
     late ProduceMediaUsecase usecase;
-    late MockMediaStreamTrack mockTrack;
 
     setUp(() {
       usecase = ProduceMediaUsecase(mockRepo);
-      mockTrack = MockMediaStreamTrack();
       provideDummy<Either<Failure, Success<ProducerEntity>>>(Right(tSuccessProducer));
     });
 
@@ -134,10 +136,19 @@ void main() {
     test(
       'UC-EXT-03: audio produce → OS denies permission → Left(MediaPermissionFailure)',
       () async {
-        when(mockRepo.produce(roomId: anyNamed('roomId'), kind: anyNamed('kind'), track: anyNamed('track')))
-            .thenAnswer((_) async => const Left(tMediaPermissionFailure));
+        when(mockRepo.produce(
+          roomId: anyNamed('roomId'),
+          kind: anyNamed('kind'),
+          track: anyNamed('track'),
+          stream: anyNamed('stream'),
+        )).thenAnswer((_) async => const Left(tMediaPermissionFailure));
 
-        final params = ProduceMediaParams(roomId: tRoomId, kind: MediaKind.audio, track: mockTrack);
+        final params = ProduceMediaParams(
+          roomId: tRoomId,
+          kind: MediaKind.audio,
+          track: mockTrack,
+          stream: mockStream,
+        );
         final result = await usecase.call(params);
 
         expect(result, const Left<Failure, Success<ProducerEntity>>(tMediaPermissionFailure));

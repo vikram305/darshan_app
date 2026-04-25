@@ -66,6 +66,11 @@ class _FakeMediaStreamTrack_4 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
+class _FakeMediaStream_5 extends _i1.SmartFake implements _i6.MediaStream {
+  _FakeMediaStream_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [CallRemoteDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -123,12 +128,14 @@ class MockCallRemoteDataSource extends _i1.Mock
     required String? roomId,
     required _i9.MediaKind? kind,
     required _i6.MediaStreamTrack? track,
+    required _i6.MediaStream? stream,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#produce, [], {
               #roomId: roomId,
               #kind: kind,
               #track: track,
+              #stream: stream,
             }),
             returnValue: _i8.Future<_i3.ProducerModel>.value(
               _FakeProducerModel_1(
@@ -137,6 +144,7 @@ class MockCallRemoteDataSource extends _i1.Mock
                   #roomId: roomId,
                   #kind: kind,
                   #track: track,
+                  #stream: stream,
                 }),
               ),
             ),
@@ -403,6 +411,133 @@ class MockMediaStreamTrack extends _i1.Mock implements _i6.MediaStreamTrack {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> dispose() =>
+      (super.noSuchMethod(
+            Invocation.method(#dispose, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+}
+
+/// A class which mocks [MediaStream].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockMediaStream extends _i1.Mock implements _i6.MediaStream {
+  MockMediaStream() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  String get id =>
+      (super.noSuchMethod(
+            Invocation.getter(#id),
+            returnValue: _i13.dummyValue<String>(this, Invocation.getter(#id)),
+          )
+          as String);
+
+  @override
+  String get ownerTag =>
+      (super.noSuchMethod(
+            Invocation.getter(#ownerTag),
+            returnValue: _i13.dummyValue<String>(
+              this,
+              Invocation.getter(#ownerTag),
+            ),
+          )
+          as String);
+
+  @override
+  set onAddTrack(dynamic Function(_i6.MediaStreamTrack)? value) =>
+      super.noSuchMethod(
+        Invocation.setter(#onAddTrack, value),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  set onRemoveTrack(dynamic Function(_i6.MediaStreamTrack)? value) =>
+      super.noSuchMethod(
+        Invocation.setter(#onRemoveTrack, value),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i8.Future<void> getMediaTracks() =>
+      (super.noSuchMethod(
+            Invocation.method(#getMediaTracks, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> addTrack(
+    _i6.MediaStreamTrack? track, {
+    bool? addToNative = true,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#addTrack, [track], {#addToNative: addToNative}),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> removeTrack(
+    _i6.MediaStreamTrack? track, {
+    bool? removeFromNative = true,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #removeTrack,
+              [track],
+              {#removeFromNative: removeFromNative},
+            ),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  List<_i6.MediaStreamTrack> getTracks() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTracks, []),
+            returnValue: <_i6.MediaStreamTrack>[],
+          )
+          as List<_i6.MediaStreamTrack>);
+
+  @override
+  List<_i6.MediaStreamTrack> getAudioTracks() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAudioTracks, []),
+            returnValue: <_i6.MediaStreamTrack>[],
+          )
+          as List<_i6.MediaStreamTrack>);
+
+  @override
+  List<_i6.MediaStreamTrack> getVideoTracks() =>
+      (super.noSuchMethod(
+            Invocation.method(#getVideoTracks, []),
+            returnValue: <_i6.MediaStreamTrack>[],
+          )
+          as List<_i6.MediaStreamTrack>);
+
+  @override
+  _i6.MediaStreamTrack? getTrackById(String? trackId) =>
+      (super.noSuchMethod(Invocation.method(#getTrackById, [trackId]))
+          as _i6.MediaStreamTrack?);
+
+  @override
+  _i8.Future<_i6.MediaStream> clone() =>
+      (super.noSuchMethod(
+            Invocation.method(#clone, []),
+            returnValue: _i8.Future<_i6.MediaStream>.value(
+              _FakeMediaStream_5(this, Invocation.method(#clone, [])),
+            ),
+          )
+          as _i8.Future<_i6.MediaStream>);
 
   @override
   _i8.Future<void> dispose() =>

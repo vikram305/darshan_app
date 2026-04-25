@@ -135,12 +135,14 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
     required String? roomId,
     required _i11.MediaKind? kind,
     required _i12.MediaStreamTrack? track,
+    required _i12.MediaStream? stream,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#produce, [], {
               #roomId: roomId,
               #kind: kind,
               #track: track,
+              #stream: stream,
             }),
             returnValue:
                 _i3.Future<
@@ -154,6 +156,7 @@ class MockCallRepository extends _i1.Mock implements _i2.CallRepository {
                       #roomId: roomId,
                       #kind: kind,
                       #track: track,
+                      #stream: stream,
                     }),
                   ),
                 ),
