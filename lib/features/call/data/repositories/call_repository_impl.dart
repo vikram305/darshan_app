@@ -10,12 +10,11 @@ import 'package:darshan_app/features/call/domain/entities/producer_entity.dart';
 import 'package:darshan_app/features/call/domain/entities/room_entity.dart';
 import 'package:darshan_app/features/call/domain/repositories/call_repository.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
+import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 
 import 'package:darshan_app/core/error/failure.dart';
 import 'package:darshan_app/features/call/domain/entities/call_event.dart';
 import 'package:darshan_app/features/call/data/models/peer_model.dart';
-
 
 class CallRepositoryImpl implements CallRepository {
   final CallRemoteDataSource remoteDataSource;
@@ -30,34 +29,37 @@ class CallRepositoryImpl implements CallRepository {
 
   @override
   Stream<CallEvent> get onCallEvent {
-    return remoteDataSource.onEvent.map((event) {
-      final type = event['type'];
-      final data = event['data'];
+    return remoteDataSource.onEvent
+        .map((event) {
+          final type = event['type'];
+          final data = event['data'];
 
-      switch (type) {
-        case 'newPeer':
-          return PeerJoinedEvent(PeerModel.fromJson(data));
-        case 'peerClosed':
-          return PeerLeftEvent(data['peerId']);
-        case 'newProducer':
-          return ProducerJoinedEvent(
-            peerId: data['peerId'],
-            producerId: data['producerId'],
-            kind: data['kind'] == 'video' ? MediaKind.video : MediaKind.audio,
-          );
-        case 'producerClosed':
-          return ProducerClosedEvent(
-            peerId: data['peerId'],
-            producerId: data['producerId'],
-          );
-        default:
-          // For MVP, we can treat other events as null or just ignored.
-          // Returning a dummy or handled separately.
-          return const PeerLeftEvent(''); // Placeholder
-      }
-    }).where((event) => event is! PeerLeftEvent || event.peerId.isNotEmpty);
+          switch (type) {
+            case 'newPeer':
+              return PeerJoinedEvent(PeerModel.fromJson(data));
+            case 'peerClosed':
+              return PeerLeftEvent(data['peerId']);
+            case 'newProducer':
+              return ProducerJoinedEvent(
+                peerId: data['peerId'],
+                producerId: data['producerId'],
+                kind: data['kind'] == 'video'
+                    ? MediaKind.video
+                    : MediaKind.audio,
+              );
+            case 'producerClosed':
+              return ProducerClosedEvent(
+                peerId: data['peerId'],
+                producerId: data['producerId'],
+              );
+            default:
+              // For MVP, we can treat other events as null or just ignored.
+              // Returning a dummy or handled separately.
+              return const PeerLeftEvent(''); // Placeholder
+          }
+        })
+        .where((event) => event is! PeerLeftEvent || event.peerId.isNotEmpty);
   }
-
 
   @override
   Future<Either<Failure, Success<RoomEntity>>> createRoom({

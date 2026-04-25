@@ -5,7 +5,7 @@ import 'package:darshan_app/features/call/data/models/producer_model.dart';
 import 'package:darshan_app/features/call/data/models/room_model.dart';
 import 'package:darshan_app/features/call/domain/entities/media_kind.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
+import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'call_remote_data_source.dart';
@@ -15,8 +15,6 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   Device? _device;
   Transport? _sendTransport;
   Transport? _recvTransport;
-
-
 
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
 
@@ -37,7 +35,14 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
     });
 
     // Mediasoup peer/producer events
-    final events = ['newPeer', 'peerClosed', 'newProducer', 'producerClosed', 'producerPaused', 'producerResumed'];
+    final events = [
+      'newPeer',
+      'peerClosed',
+      'newProducer',
+      'producerClosed',
+      'producerPaused',
+      'producerResumed',
+    ];
     for (final event in events) {
       socket.on(event, (data) {
         _eventController.add({'type': event, 'data': data});
@@ -45,17 +50,20 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
     }
   }
 
-
   /// Helper for promising socket.emitWithAck
   Future<dynamic> _emitWithAck(String event, [dynamic data]) {
     final completer = Completer<dynamic>();
-    socket.emitWithAck(event, data, ack: (response) {
-      if (response != null && response['error'] != null) {
-        completer.completeError(ServerException(response['error']));
-      } else {
-        completer.complete(response);
-      }
-    });
+    socket.emitWithAck(
+      event,
+      data,
+      ack: (response) {
+        if (response != null && response['error'] != null) {
+          completer.completeError(ServerException(response['error']));
+        } else {
+          completer.complete(response);
+        }
+      },
+    );
 
     // Fallback timeout to prevent infinite hangs
     return completer.future.timeout(
@@ -67,7 +75,9 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   @override
   Future<RoomModel> createRoom(String displayName) async {
     try {
-      final response = await _emitWithAck('createRoom', {'displayName': displayName});
+      final response = await _emitWithAck('createRoom', {
+        'displayName': displayName,
+      });
       // A full implementation would map the response directly.
       // Below is an example parsing.
       return RoomModel.fromJson(response);
@@ -88,7 +98,9 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
       // Initialize Mediasoup Device after joining room and getting Router RTP Capabilities
       final routerRtpCapabilities = response['routerRtpCapabilities'];
       _device = Device();
-      await _device!.load(routerRtpCapabilities: RtpCapabilities.fromMap(routerRtpCapabilities));
+      await _device!.load(
+        routerRtpCapabilities: RtpCapabilities.fromMap(routerRtpCapabilities),
+      );
 
       return RoomModel.fromJson(response['room']);
     } catch (e) {
@@ -100,10 +112,7 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
   @override
   Future<void> leaveRoom(String roomId, String peerId) async {
     try {
-      await _emitWithAck('leaveRoom', {
-        'roomId': roomId,
-        'peerId': peerId,
-      });
+      await _emitWithAck('leaveRoom', {'roomId': roomId, 'peerId': peerId});
       // Cleanup transports
       _sendTransport?.close();
       _recvTransport?.close();
@@ -151,7 +160,8 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
             'transportId': _sendTransport!.id,
             'kind': data['kind'],
             'rtpParameters': data['rtpParameters'].toMap(),
-            if (data['appData'] != null) 'appData': Map<String, dynamic>.from(data['appData']),
+            if (data['appData'] != null)
+              'appData': Map<String, dynamic>.from(data['appData']),
           });
           callback(response['id']);
         });
@@ -216,10 +226,11 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
       }
 
       final completer = Completer<Consumer>();
-      _recvTransport!.consumerCallback = (Consumer consumer, [Function? accept]) {
-        if (accept != null) accept();
-        completer.complete(consumer);
-      };
+      _recvTransport!.consumerCallback =
+          (Consumer consumer, [Function? accept]) {
+            if (accept != null) accept();
+            completer.complete(consumer);
+          };
 
       final rtpCapabilities = _device!.rtpCapabilities;
       final response = await _emitWithAck('consume', {
@@ -246,26 +257,34 @@ class SocketCallRemoteDataSourceImpl implements CallRemoteDataSource {
         rtpParameters: response['rtpParameters'],
         stream: consumer.stream,
       );
-
     } catch (e) {
       throw ServerException('Failed to consume media: $e');
     }
   }
 
-
   @override
-  Future<void> toggleAudio({required String producerId, required bool pause}) async {
+  Future<void> toggleAudio({
+    required String producerId,
+    required bool pause,
+  }) async {
     try {
-      await _emitWithAck(pause ? 'pauseProducer' : 'resumeProducer', {'producerId': producerId});
+      await _emitWithAck(pause ? 'pauseProducer' : 'resumeProducer', {
+        'producerId': producerId,
+      });
     } catch (e) {
       throw ServerException('Failed to toggle audio: $e');
     }
   }
 
   @override
-  Future<void> toggleCamera({required String producerId, required bool pause}) async {
+  Future<void> toggleCamera({
+    required String producerId,
+    required bool pause,
+  }) async {
     try {
-      await _emitWithAck(pause ? 'pauseProducer' : 'resumeProducer', {'producerId': producerId});
+      await _emitWithAck(pause ? 'pauseProducer' : 'resumeProducer', {
+        'producerId': producerId,
+      });
     } catch (e) {
       throw ServerException('Failed to toggle camera: $e');
     }
